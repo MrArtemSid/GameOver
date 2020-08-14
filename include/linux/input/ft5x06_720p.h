@@ -280,6 +280,7 @@ struct ft5x06_ts_data {
 	u32 tch_data_len;
 	u8 fw_ver[3];
 	u8 fw_vendor_id;
+	struct pm_qos_request pm_qos_req;
 #if defined(CONFIG_FB)
 	struct notifier_block fb_notif;
 	struct work_struct fb_notify_work;

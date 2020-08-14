@@ -29,6 +29,7 @@
 #include <linux/regulator/consumer.h>
 #include <linux/firmware.h>
 #include <linux/debugfs.h>
+#include <linux/pm_qos.h>
 #include <linux/input/ft5x06_720p.h>
 #include <linux/proc_fs.h>
 #include <linux/fs.h>
@@ -196,6 +197,11 @@ static irqreturn_t ft5x06_ts_interrupt(int irq, void *dev_id)
 	u32 id, x, y, status, num_touches;
 	u8 reg = 0x00, *buf;
 	bool update_input = false;
+	
+	/* prevent CPU from entering deep sleep */
+	pm_qos_update_request(&data->pm_qos_req, 100);
+
+	pm_qos_update_request(&data->pm_qos_req, PM_QOS_DEFAULT_VALUE);
 
 	if (!data) {
 		CTP_ERROR("%s: Invalid data\n", __func__);
@@ -1057,7 +1063,8 @@ static int ft5x06_ts_probe(struct i2c_client *client,
 		}
 	}
 
-
+	pm_qos_add_request(&data->pm_qos_req, PM_QOS_CPU_DMA_LATENCY, PM_QOS_DEFAULT_VALUE);
+	
 	if (gpio_is_valid(pdata->irq_gpio)) {
 		err = gpio_request(pdata->irq_gpio, "ft5x06_irq_gpio");
 		if (err) {
@@ -1268,6 +1275,8 @@ static int ft5x06_ts_remove(struct i2c_client *client)
         sysfs_remove_group(&client->dev.kobj, &ft5x06_ts_attr_group);
 
 	input_unregister_device(data->input_dev);
+	
+	pm_qos_remove_request(&data->pm_qos_req);
 
 	return 0;
 }
