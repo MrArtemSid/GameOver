@@ -19,6 +19,7 @@
 #include <linux/irqreturn.h>
 #include <linux/pinctrl/consumer.h>
 #include <linux/gpio.h>
+#include <linux/pm_qos.h>
 
 #include "mdss_panel.h"
 #include "mdss_dsi_cmd.h"
@@ -559,6 +560,7 @@ struct mdss_dsi_ctrl_pdata {
 	/* DBA data */
 	struct workqueue_struct *workq;
 	struct delayed_work dba_work;
+	struct pm_qos_request pm_qos_req;
 	char bridge_name[MSM_DBA_CHIP_NAME_MAX_LEN];
 	uint32_t bridge_index;
 	bool ds_registered;
