@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2020, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2019, The Linux Foundation. All rights reserved.
  * Author: Brian Swetland <swetland@google.com>
  *
  * This software is licensed under the terms of the GNU General Public
@@ -44,7 +44,7 @@
 
 #define TRUE        0x01
 #define FALSE       0x00
-#define SESSION_MAX ASM_ACTIVE_STREAMS_ALLOWED
+#define SESSION_MAX 8
 
 enum {
 	ASM_TOPOLOGY_CAL = 0,
@@ -1450,7 +1450,7 @@ int q6asm_audio_client_buf_alloc(unsigned int dir,
 	pr_debug("%s: session[%d]bufsz[%d]bufcnt[%d]\n", __func__, ac->session,
 		bufsz, bufcnt);
 
-	if (ac->session <= 0 || ac->session > ASM_ACTIVE_STREAMS_ALLOWED) {
+	if (ac->session <= 0 || ac->session > 8) {
 		pr_err("%s: Session ID is invalid, session = %d\n", __func__,
 			ac->session);
 		goto fail;
@@ -1553,7 +1553,7 @@ int q6asm_audio_client_buf_alloc_contiguous(unsigned int dir,
 			__func__, ac->session,
 			bufsz, bufcnt);
 
-	if (ac->session <= 0 || ac->session > ASM_ACTIVE_STREAMS_ALLOWED) {
+	if (ac->session <= 0 || ac->session > 8) {
 		pr_err("%s: Session ID is invalid, session = %d\n", __func__,
 			ac->session);
 		goto fail;
@@ -1783,7 +1783,7 @@ static int32_t q6asm_srvc_callback(struct apr_client_data *data, void *priv)
 		if ((session_id > 0 && session_id <= SESSION_MAX))
 			spin_unlock_irqrestore(
 				&(session[session_id].session_lock), flags);
-		return 0;
+			return 0;
 	}
 	port = &ac->port[dir];
 
