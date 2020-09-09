@@ -22,8 +22,6 @@
 
 static struct delayed_work autocut_charger_work;
 
-static int error_counter = 0;
-
 static int battery_charging_enabled(struct power_supply *batt_psy, bool enable)
 {
 	const union power_supply_propval ret = {enable,};
@@ -33,25 +31,7 @@ static int battery_charging_enabled(struct power_supply *batt_psy, bool enable)
 				POWER_SUPPLY_PROP_BATTERY_CHARGING_ENABLED,
 				&ret);
 
-	return 1;
-}
-
-static void reset_counter(void)
-{
-	if (error_counter > 0)
-		error_counter--;
-}
-
-static bool check_error_encounter(void)
-{
-	error_counter++;
-
-	if (error_counter >= 5) {
-		cancel_delayed_work(&autocut_charger_work);
-		return true;
-	}
-
-	return false;
+	return 0;
 }
 
 static void autocut_charger_worker(struct work_struct *work)
@@ -66,10 +46,6 @@ static void autocut_charger_worker(struct work_struct *work)
 	if (!batt_psy->get_property || !usb_psy->get_property)
 	{
 		ms_timer = 10000;
-
-		if (check_error_encounter())
-			return;
-
 		goto reschedule;
 	}
 
@@ -90,22 +66,14 @@ static void autocut_charger_worker(struct work_struct *work)
 		if (charging_enabled.intval && bat_percent.intval >= 100)
 		{
 			rc = battery_charging_enabled(batt_psy, 0);
-			if (rc) {
+			if (rc)
 				pr_err("Failed to disable battery charging!\n");
-				if (check_error_encounter())
-					return;
-			} else
-				reset_counter();
 		}
 		else if (!charging_enabled.intval && bat_percent.intval < 100)
 		{
 			rc = battery_charging_enabled(batt_psy, 1);
-			if (rc) {
+			if (rc)
 				pr_err("Failed to enable battery charging!\n");
-				if (check_error_encounter())
-					return;
-			} else
-				reset_counter();
 		}
 	}
 	else if (bat_percent.intval < 100 || !present.intval)
@@ -113,12 +81,8 @@ static void autocut_charger_worker(struct work_struct *work)
 		if (!charging_enabled.intval)
 		{
 			rc = battery_charging_enabled(batt_psy, 1);
-			if (rc) {
+			if (rc)
 				pr_err("Failed to enable battery charging!\n");
-				if (check_error_encounter())
-					return;
-			} else
-				reset_counter();
 		}
 	}
 
@@ -129,7 +93,7 @@ reschedule:
 static int __init autocut_charger_init(void)
 {
 	INIT_DELAYED_WORK(&autocut_charger_work, autocut_charger_worker);
-	schedule_delayed_work(&autocut_charger_work, msecs_to_jiffies(15000));
+	schedule_delayed_work(&autocut_charger_work, msecs_to_jiffies(10000));
 
 	pr_info("%s: Initialized.\n", __func__);
 
