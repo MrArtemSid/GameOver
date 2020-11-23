@@ -678,4 +678,4 @@ dtb-$(CONFIG_MACH_XIAOMI_SANTONI_TREBLE) := xiaomi/msm8940-wt88536-treble.dtb
 
 always		:= $(dtb-y)
 subdir-y	:= $(dts-dirs)
-clean-files	:= *.dtb
+clean-files	:= *.dtb *.dtbo
