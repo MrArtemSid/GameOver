@@ -154,7 +154,7 @@ static int benchmark_event_kthread(void *arg)
 		 * We don't go to sleep, but let others
 		 * run as well.
 		 */
-		cond_resched_tasks_rcu_qs();
+		cond_resched();
 	}
 
 	return 0;
